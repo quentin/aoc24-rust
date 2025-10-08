@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 use Solution::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Solution {
     U64(u64),
     Usize(usize),
