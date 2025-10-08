@@ -1,8 +1,8 @@
 mod days;
 mod etc;
 
+use days::{day01, day02, day03};
 use etc::solution::Solution;
-use days::{day01, day02};
 use std::env;
 
 pub type SolutionPair = (Solution, Solution);
@@ -26,6 +26,7 @@ fn main() {
         let (p1, p2) = match day {
             1 => day01::solve(input),
             2 => day02::solve(input),
+            3 => day03::solve(input),
             _ => unimplemented!(),
         };
 
