@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+require 'open3'
+require 'httparty'
+
+raise "Missing day" unless ARGV[0] =~ /[0-9]+/
+day = ARGV[0]
+raise "Missing session" unless ARGV[1] =~ /[a-z0-9]+/
+session = ARGV[1]
+# query previous year puzzle if we are not in december yet
+year = ARGV[2] || (Time.now.year - (Time.now.month < 12 ? 1 : 0)).to_s
+
+headers = {
+  "Host": "adventofcode.com",
+  "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.5",
+  "Accept-Encoding": "gzip, deflate, br, zstd",
+  "Referer": "https://adventofcode.com/",
+  "Connection": "keep-alive",
+  "Cookie": "session=#{session}",
+  "Upgrade-Insecure-Requests": "1",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "same-origin",
+  "Sec-Fetch-User": "?1",
+  "Priority": "u=0, i",
+}
+
+# attempt to read puzzle
+url = "https://adventofcode.com/#{year}/day/#{day}"
+response = HTTParty.get(url, headers: headers)
+raise response unless response.code == 200
+begin
+  stdin, stdout, stderr, wait_thr = Open3.popen3("pandoc --from html --to markdown_strict")
+  stdin.write response.body
+  stdin.close
+  # Read and print output from the Ruby file
+  puts stdout.read
+end

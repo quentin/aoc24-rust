@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+#
+# Usage: newday DAY SESSION [YEAR]
+#
+# - DAY is the puzzle day number (0 - 25)
+# - SESSION is your advent of code browser session id
+# - YEAR is the AoC year (4 digits)
+#
+
+raise "Missing day" unless ARGV[0] =~ /[0-9]+/
+day = ARGV[0]
+raise "Missing session" unless ARGV[1] =~ /[a-z0-9]+/
+session = ARGV[1]
+year = ARGV[2] || (Time.now.year - (Time.now.month < 12 ? 1 : 0)).to_s
+
+dayname = "day" + day.to_s.rjust(2, '0')
+
+unless File.exist?(File.join("puzzle", "#{dayname}.md"))
+  `./fetch_puzzle #{day} #{session} #{year} > puzzle/#{dayname}.md`
+end
+unless File.exist?(File.join("input", "#{dayname}.txt"))
+  `./fetch_input #{day} #{session} #{year} > input/#{dayname}.txt`
+end
+unless File.exist?(File.join("src", "days", "#{dayname}.rs"))
+  template = <<-EOF
+use crate::{Solution, SolutionPair};
+
+pub fn solve(input: String) -> SolutionPair {
+  //let sol1: u64 = 0;
+  //let sol2: u64 = 0;
+  //(Solution::from(sol1), Solution::from(sol2))
+  (Solution::Todo(), Solution::Todo())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  const EXAMPLE_INPUT: &str = "";
+
+  #[test]
+  fn example_part1() {
+  }
+
+  #[test]
+  fn example_part2() {
+  }
+}
+EOF
+  File.open(File.join("src", "days", "#{dayname}.rs"), "w") do |f|
+    f.puts template
+  end
+end
+
