@@ -1,8 +1,9 @@
 mod days;
 mod etc;
 
-use days::{day01, day02, day03};
+use days::*;
 use etc::solution::Solution;
+use etc::grid::Grid;
 use std::env;
 
 pub type SolutionPair = (Solution, Solution);
@@ -27,6 +28,7 @@ fn main() {
             1 => day01::solve(input),
             2 => day02::solve(input),
             3 => day03::solve(input),
+            4 => day04::solve(input),
             _ => unimplemented!(),
         };
 
