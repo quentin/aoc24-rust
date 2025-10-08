@@ -1,4 +1,4 @@
-use crate::etc::grid::ALL_DIRECTIONS;
+use crate::etc::grid::{ALL_DIRECTIONS, Displacement as Di, Position};
 use crate::{Grid, Solution, SolutionPair};
 
 fn prepare(input: &str) -> Grid {
@@ -10,8 +10,8 @@ fn solve_part1(input: &str) -> usize {
     let mut count = 0;
     for l in 0..grid.lines {
         for c in 0..grid.columns {
-            for step in ALL_DIRECTIONS {
-                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract((l, c), step) {
+            for step in &ALL_DIRECTIONS {
+                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract(&Position(l, c), step) {
                     count += 1;
                 }
             }
@@ -26,16 +26,17 @@ fn solve_part2(input: &str) -> usize {
     for l in 0..grid.lines {
         for c in 0..grid.columns {
             // check the first diagonal in both directions
-            let center = (l, c);
+            let center = Position(l, c);
             let diag1 = (Some(['M', 'A', 'S'])
-                == grid.deltas_extract(center, [(-1, -1), (0, 0), (1, 1)]))
+                == grid.deltas_extract(&center, [Di(-1, -1), Di(0, 0), Di(1, 1)]))
                 || (Some(['M', 'A', 'S'])
-                    == grid.deltas_extract(center, [(1, 1), (0, 0), (-1, -1)]));
+                    == grid.deltas_extract(&center, [Di(1, 1), Di(0, 0), Di(-1, -1)]));
             // check the second diagonal in both directions
             let diag2 = (Some(['M', 'A', 'S'])
-                == grid.deltas_extract(center, [(1, -1), (0, 0), (-1, 1)]))
+                == grid.deltas_extract(&center, [Di(1, -1), Di(0, 0), Di(-1, 1)]))
                 || (Some(['M', 'A', 'S'])
-                    == grid.deltas_extract(center, [(-1, 1), (0, 0), (1, -1)]));
+                    == grid
+                        .deltas_extract(&center, [(-1, 1).into(), (0, 0).into(), (1, -1).into()]));
             if diag1 && diag2 {
                 count += 1;
             }
