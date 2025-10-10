@@ -12,7 +12,7 @@ pub struct Grid<T = char> {
 pub struct Position(pub usize, pub usize);
 
 impl Position {
-    pub fn add(&self, delta: &Displacement) -> Option<Self> {
+    pub fn add(&self, delta: &Point) -> Option<Self> {
         if let Some(line) = self.0.checked_add_signed(delta.0) {
             if let Some(column) = self.1.checked_add_signed(delta.1) {
                 return Some(Position(line, column));
@@ -20,47 +20,62 @@ impl Position {
         }
         None
     }
+
+    pub fn into_point(&self) -> Point {
+        Point(self.0 as isize, self.1 as isize)
+    }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Displacement(pub isize, pub isize);
 
-impl Displacement {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Point(pub isize, pub isize);
+
+impl Point {
     pub fn is_identity(&self) -> bool {
         self.0 == 0 && self.1 == 0
     }
 
-    pub const NORTH: Displacement = Displacement(-1, 0);
-    pub const EAST: Displacement = Displacement(0, 1);
-    pub const SOUTH: Displacement = Displacement(1, 0);
-    pub const WEST: Displacement = Displacement(0, -1);
+    pub const NORTH: Point = Point(-1, 0);
+    pub const EAST: Point = Point(0, 1);
+    pub const SOUTH: Point = Point(1, 0);
+    pub const WEST: Point = Point(0, -1);
 
-    pub fn turn_right(&self) -> Self {
-        match self {
-            &Self::NORTH => Self::EAST,
-            &Self::EAST => Self::SOUTH,
-            &Self::SOUTH => Self::WEST,
-            &Self::WEST => Self::NORTH,
-            _ => unimplemented!()
-        }
+    pub fn rotate_90_clockwise(&self) -> Self {
+        Self(self.1, -self.0)
+    }
+
+    pub fn rotate_90_counterclockwise(&self) -> Self {
+        Self(-self.1, self.0)
+    }
+
+    pub fn rotate_180(&self) -> Self {
+        Self(-self.0, -self.1)
     }
 }
 
-impl From<(i32, i32)> for Displacement {
+impl From<(i32, i32)> for Point {
     fn from(value: (i32, i32)) -> Self {
         Self(value.0 as isize, value.1 as isize)
     }
 }
 
-impl std::ops::Add for Displacement {
+impl std::ops::Add for Point {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Displacement(self.0 + other.0, self.1 + other.1)
+        Point(self.0 + other.0, self.1 + other.1)
     }
 }
 
-impl<T> std::ops::Mul<T> for Displacement
+impl std::ops::Sub for Point {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Point(self.0 - other.0, self.1 - other.1)
+    }
+}
+
+impl<T> std::ops::Mul<T> for Point
 where
     isize: std::ops::Mul<T>,
     T: std::ops::Mul<isize, Output = isize> + Copy,
@@ -68,7 +83,7 @@ where
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
-        Displacement(rhs * self.0, rhs * self.1)
+        Point(rhs * self.0, rhs * self.1)
     }
 }
 
@@ -90,15 +105,15 @@ where
 ///       /  |  \
 ///   1,-1  1,0  1,1
 /// ```
-pub const ALL_DIRECTIONS: [Displacement; 8] = [
-    Displacement(0, 1),
-    Displacement(1, 1),
-    Displacement(1, 0),
-    Displacement(1, -1),
-    Displacement(0, -1),
-    Displacement(-1, -1),
-    Displacement(-1, 0),
-    Displacement(-1, 1),
+pub const ALL_DIRECTIONS: [Point; 8] = [
+    Point(0, 1),
+    Point(1, 1),
+    Point(1, 0),
+    Point(1, -1),
+    Point(0, -1),
+    Point(-1, -1),
+    Point(-1, 0),
+    Point(-1, 1),
 ];
 
 impl Grid<char> {
@@ -128,7 +143,7 @@ impl<T> Grid<T> {
         line < self.lines && column < self.columns
     }
 
-    pub fn step(&self, origin: &Position, delta: &Displacement) -> Option<Position> {
+    pub fn step(&self, origin: &Position, delta: &Point) -> Option<Position> {
         origin.add(delta).filter(|pos| self.valid_position(pos))
     }
 
@@ -185,6 +200,16 @@ impl<T> Grid<T> {
     {
         self.items.iter().find(|&x| predicate(x))
     }
+
+    pub fn for_each_with_position<F>(&self, mut f: F)
+    where
+        F: FnMut(Position, &T),
+    {
+        self.items
+            .iter()
+            .enumerate()
+            .for_each(|(index, item)| f(self.index_to_position(index), item));
+    }
 }
 
 impl<T> Grid<T>
@@ -194,11 +219,7 @@ where
     /// Extract N items by applying the given step N-1 times starting from the given origin position.
     ///
     /// Return `None` if any generated coordinates is outside the grid's boundaries.
-    pub fn step_extract<const N: usize>(
-        &self,
-        origin: &Position,
-        step: &Displacement,
-    ) -> Option<[T; N]> {
+    pub fn step_extract<const N: usize>(&self, origin: &Position, step: &Point) -> Option<[T; N]> {
         let mut items: [T; N] = std::array::from_fn(|_| T::default());
 
         for i in 0..N {
@@ -222,7 +243,7 @@ where
     pub fn deltas_extract<const N: usize>(
         &self,
         origin: &Position,
-        deltas: [Displacement; N],
+        deltas: [Point; N],
     ) -> Option<[T; N]> {
         let mut items: [T; N] = std::array::from_fn(|_| T::default());
         for (i, d) in deltas.iter().enumerate() {
@@ -249,5 +270,25 @@ where
             columns: self.columns,
             items: self.items.iter().map(f).collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Point;
+    #[test]
+    fn rotate_90_clockwise() {
+        assert_eq!(Point::NORTH.rotate_90_clockwise(), Point::EAST);
+        assert_eq!(Point::EAST.rotate_90_clockwise(), Point::SOUTH);
+        assert_eq!(Point::SOUTH.rotate_90_clockwise(), Point::WEST);
+        assert_eq!(Point::WEST.rotate_90_clockwise(), Point::NORTH);
+    }
+
+    #[test]
+    fn rotate_180() {
+        assert_eq!(Point::NORTH.rotate_180(), Point::SOUTH);
+        assert_eq!(Point::EAST.rotate_180(), Point::WEST);
+        assert_eq!(Point::SOUTH.rotate_180(), Point::NORTH);
+        assert_eq!(Point::WEST.rotate_180(), Point::EAST);
     }
 }

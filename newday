@@ -26,11 +26,18 @@ unless File.exist?(File.join("src", "days", "#{dayname}.rs"))
   template = <<-EOF
 use crate::{Solution, SolutionPair};
 
+fn solve_part1(input: &str) -> () {
+    unimplemented!()
+}
+
+fn solve_part2(input: &str) -> () {
+    unimplemented!()
+}
+
 pub fn solve(input: String) -> SolutionPair {
-  //let sol1: u64 = 0;
-  //let sol2: u64 = 0;
-  //(Solution::from(sol1), Solution::from(sol2))
-  (Solution::Todo(), Solution::Todo())
+  let sol1 = solve_part1(&input);
+  let sol2 = solve_part2(&input);
+  (Solution::from(sol1), Solution::from(sol2))
 }
 
 #[cfg(test)]
@@ -41,10 +48,14 @@ mod tests {
 
   #[test]
   fn example_part1() {
+    unimplemented!()
+    //assert_eq!(solve_part1(EXAMPLE_INPUT), ());
   }
 
   #[test]
   fn example_part2() {
+    unimplemented!()
+    //assert_eq!(solve_part2(EXAMPLE_INPUT), ());
   }
 }
 EOF

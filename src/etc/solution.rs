@@ -39,3 +39,9 @@ impl From<&str> for Solution {
         Self::Str(sol.to_owned())
     }
 }
+
+impl From<()> for Solution {
+    fn from(_: ()) -> Self {
+        Self::Todo()
+    }
+}

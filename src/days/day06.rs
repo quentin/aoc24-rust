@@ -1,4 +1,4 @@
-use crate::etc::grid::{Displacement, Position};
+use crate::etc::grid::{Point, Position};
 use crate::{Grid, Solution, SolutionPair};
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -25,7 +25,7 @@ fn prepare(input: &str) -> (Map, Position) {
 /// Execute the guard's patrol, return the set of positions visited by the guard
 /// and whether the patrol is a loop.
 fn patrol(map: &Map, mut guard: Position) -> (std::collections::BTreeSet<Position>, bool) {
-    let mut direction = Displacement::NORTH;
+    let mut direction = Point::NORTH;
     let mut patrolled = std::collections::BTreeSet::new();
     let mut locations = std::collections::BTreeSet::new();
     loop {
@@ -39,7 +39,7 @@ fn patrol(map: &Map, mut guard: Position) -> (std::collections::BTreeSet<Positio
             guard = match map.get(&ahead).unwrap() {
                 Cell::Empty => ahead,
                 Cell::Obstruction => {
-                    direction = direction.turn_right();
+                    direction = direction.rotate_90_clockwise();
                     guard
                 }
             };
