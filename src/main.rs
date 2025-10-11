@@ -19,6 +19,7 @@ fn solve_day(day: u8) -> SolutionPair {
         6 => day06::solve(input),
         7 => day07::solve(input),
         8 => day08::solve(input),
+        9 => day09::solve(input),
         _ => unimplemented!(),
     }
 }
@@ -47,18 +48,52 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve_day;
     use crate::Solution;
+    use crate::solve_day;
 
     #[test]
     fn my_puzzles() {
-        assert_eq!(solve_day(1), (Solution::from(765748u64), Solution::from(27732508u64)));
-        assert_eq!(solve_day(2), (Solution::from(479usize), Solution::from(531usize)));
-        assert_eq!(solve_day(3), (Solution::from(170807108u64), Solution::from(74838033u64)));
-        assert_eq!(solve_day(4), (Solution::from(2397usize), Solution::from(1824usize)));
-        assert_eq!(solve_day(5), (Solution::from(7024usize), Solution::from(4151usize)));
-        assert_eq!(solve_day(6), (Solution::from(4939usize), Solution::from(1434usize)));
-        assert_eq!(solve_day(7), (Solution::from(4555081946288u64), Solution::from(227921760109726u64)));
-        assert_eq!(solve_day(8), (Solution::from(269usize), Solution::from(949usize)));
+        assert_eq!(
+            solve_day(1),
+            (Solution::from(765748u64), Solution::from(27732508u64))
+        );
+        assert_eq!(
+            solve_day(2),
+            (Solution::from(479usize), Solution::from(531usize))
+        );
+        assert_eq!(
+            solve_day(3),
+            (Solution::from(170807108u64), Solution::from(74838033u64))
+        );
+        assert_eq!(
+            solve_day(4),
+            (Solution::from(2397usize), Solution::from(1824usize))
+        );
+        assert_eq!(
+            solve_day(5),
+            (Solution::from(7024usize), Solution::from(4151usize))
+        );
+        assert_eq!(
+            solve_day(6),
+            (Solution::from(4939usize), Solution::from(1434usize))
+        );
+        assert_eq!(
+            solve_day(7),
+            (
+                Solution::from(4555081946288u64),
+                Solution::from(227921760109726u64)
+            )
+        );
+        assert_eq!(
+            solve_day(8),
+            (Solution::from(269usize), Solution::from(949usize))
+        );
+        assert_eq!(
+            solve_day(9),
+            (
+                Solution::from(6201130364722u64),
+                Solution::from(6221662795602u64)
+            )
+        );
     }
 }
