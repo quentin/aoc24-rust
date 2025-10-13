@@ -2,7 +2,7 @@ mod days;
 mod etc;
 
 use days::*;
-use etc::grid::{Grid, Point, Position};
+use etc::grid::{Grid, Position};
 use etc::solution::Solution;
 use std::env;
 

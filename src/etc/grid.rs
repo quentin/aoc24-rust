@@ -260,7 +260,7 @@ impl<T> Grid<T> {
         F: FnMut(Position, &T),
     {
         for delta in &[Point::NORTH, Point::EAST, Point::SOUTH, Point::WEST] {
-            if let Some(pos) = self.step(origin, delta){ 
+            if let Some(pos) = self.step(origin, delta) {
                 f(pos, self.unchecked_get(&pos));
             }
         }
@@ -330,7 +330,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::Point;
+    use super::{Grid, Point, Position};
     #[test]
     fn rotate_90_clockwise() {
         assert_eq!(Point::NORTH.rotate_90_clockwise(), Point::EAST);
@@ -340,10 +340,85 @@ mod tests {
     }
 
     #[test]
+    fn rotate_90_counterclockwise() {
+        assert_eq!(Point::NORTH.rotate_90_counterclockwise(), Point::WEST);
+        assert_eq!(Point::EAST.rotate_90_counterclockwise(), Point::NORTH);
+        assert_eq!(Point::SOUTH.rotate_90_counterclockwise(), Point::EAST);
+        assert_eq!(Point::WEST.rotate_90_counterclockwise(), Point::SOUTH);
+    }
+
+    #[test]
     fn rotate_180() {
         assert_eq!(Point::NORTH.rotate_180(), Point::SOUTH);
         assert_eq!(Point::EAST.rotate_180(), Point::WEST);
         assert_eq!(Point::SOUTH.rotate_180(), Point::NORTH);
         assert_eq!(Point::WEST.rotate_180(), Point::EAST);
+    }
+
+    #[test]
+    fn is_identity() {
+        assert!(Point(0, 0).is_identity());
+        assert!(!Point::NORTH.is_identity());
+    }
+
+    #[test]
+    fn valid_index() {
+        let g = Grid::new("1234\n5678\n");
+        assert!(g.valid_index(0));
+        assert!(g.valid_index(1));
+        assert!(g.valid_index(7));
+        assert!(g.valid_index(g.size() - 1));
+        assert!(!g.valid_index(g.size()));
+    }
+
+    #[test]
+    fn checked_position() {
+        let g = Grid::new("1234\n5678\n");
+        assert_eq!(Some(Position(0, 0)), g.checked_position(0));
+        assert_eq!(Some(Position(1, 1)), g.checked_position(5));
+        assert_eq!(None, g.checked_position(g.size()));
+        assert_eq!(None, g.checked_position(100));
+    }
+
+    #[test]
+    fn strict_position() {
+        let g = Grid::new("1234\n5678\n");
+        assert_eq!(Position(0, 0), g.strict_position(0));
+        assert_eq!(Position(1, 1), g.strict_position(5));
+    }
+
+    #[test]
+    #[should_panic]
+    fn strict_position_panics() {
+        let g = Grid::new("1234\n5678\n");
+        g.strict_position(g.size());
+    }
+
+    #[test]
+    #[should_panic]
+    fn strict_index_panics() {
+        let g = Grid::new("1234\n5678\n");
+        g.strict_index(&Position(2, 0));
+    }
+
+    #[test]
+    #[should_panic]
+    fn strict_get_panics() {
+        let g = Grid::new("1234\n5678\n");
+        g.strict_get(&Position(2, 0));
+    }
+
+    #[test]
+    fn find() {
+        let g = Grid::new("1234\n5678\n");
+        assert_eq!(None, g.find(|v| *v == '0'));
+        assert_eq!(Some(&'8'), g.find(|v| *v == '8'));
+    }
+
+    #[test]
+    fn position() {
+        let g = Grid::new("1234\n5678\n");
+        assert_eq!(None, g.position(|v| *v == '0'));
+        assert_eq!(Some(Position(1,3)), g.position(|v| *v == '8'));
     }
 }
