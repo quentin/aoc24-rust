@@ -2,7 +2,7 @@ mod days;
 mod etc;
 
 use days::*;
-use etc::grid::{Grid, Position};
+use etc::grid::{Grid, Point};
 use etc::solution::Solution;
 use std::env;
 
@@ -22,6 +22,7 @@ fn solve_day(day: u8) -> SolutionPair {
         9 => day09::solve(input),
         10 => day10::solve(input),
         11 => day11::solve(input),
+        12 => day12::solve(input),
         _ => unimplemented!(),
     }
 }
@@ -109,6 +110,13 @@ mod tests {
             (
                 Solution::from(183248usize),
                 Solution::from(218811774248729usize)
+            )
+        );
+        assert_eq!(
+            solve_day(12),
+            (
+                Solution::from(1456082u64),
+                Solution::from(872382u64)
             )
         );
     }

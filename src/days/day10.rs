@@ -1,4 +1,4 @@
-use crate::{Grid, Position, Solution, SolutionPair};
+use crate::{Grid, Point, Solution, SolutionPair};
 
 type Map = Grid<u32>;
 
@@ -35,9 +35,9 @@ fn solve_part1(input: &str) -> usize {
     score
 }
 
-type Ratings = std::collections::HashMap<Position, usize>;
+type Ratings = std::collections::HashMap<Point, usize>;
 
-fn dfs(map: &Map, ratings: &mut Ratings, pos: &Position, level: u32) -> usize {
+fn dfs(map: &Map, ratings: &mut Ratings, pos: &Point, level: u32) -> usize {
     if let Some(rating) = ratings.get(pos) {
         *rating
     } else if *map.unchecked_get(pos) == 9 {

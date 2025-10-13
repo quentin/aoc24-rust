@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 itertools = "0.14.0"
 num = "0.4.3"
+partitions = { version = "0.2.4", default-features = false, features = ["compact"] }
 regex = "1"

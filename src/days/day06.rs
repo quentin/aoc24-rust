@@ -1,5 +1,4 @@
-use crate::etc::grid::{Point, Position};
-use crate::{Grid, Solution, SolutionPair};
+use crate::{Grid, Solution, SolutionPair, Point};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 enum Cell {
@@ -10,7 +9,7 @@ enum Cell {
 
 type Map = Grid<Cell>;
 
-fn prepare(input: &str) -> (Map, Position) {
+fn prepare(input: &str) -> (Map, Point) {
     let grid = Grid::new(input);
     (
         grid.new_from(|x| match x {
@@ -24,7 +23,7 @@ fn prepare(input: &str) -> (Map, Position) {
 
 /// Execute the guard's patrol, return the set of positions visited by the guard
 /// and whether the patrol is a loop.
-fn patrol(map: &Map, mut guard: Position) -> (std::collections::BTreeSet<Position>, bool) {
+fn patrol(map: &Map, mut guard: Point) -> (std::collections::BTreeSet<Point>, bool) {
     let mut direction = Point::NORTH;
     let mut patrolled = std::collections::BTreeSet::new();
     let mut locations = std::collections::BTreeSet::new();
@@ -100,7 +99,7 @@ mod tests {
     #[test]
     fn preparation() {
         let (map, guard) = prepare(EXAMPLE_INPUT);
-        assert_eq!(guard, Position(6, 4));
+        assert_eq!(guard, Point(6, 4));
         assert_eq!(map.at(0, 0), Some(&Cell::Empty));
         assert_eq!(map.at(3, 2), Some(&Cell::Obstruction));
         assert_eq!(map.at(6, 4), Some(&Cell::Empty));

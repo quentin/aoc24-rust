@@ -1,3 +1,7 @@
+//! 2D grid stuff.
+#![allow(dead_code)]
+use std::ops::Add;
+
 /// A 2D grid, where coordinates are expressed as a couple `(line, column)`.
 ///
 /// The origin `(0,0)` is the top-left-most item.
@@ -6,24 +10,6 @@ pub struct Grid<T = char> {
     pub lines: usize,
     pub columns: usize,
     pub items: Vec<T>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Position(pub usize, pub usize);
-
-impl Position {
-    pub fn add(&self, delta: &Point) -> Option<Self> {
-        if let Some(line) = self.0.checked_add_signed(delta.0) {
-            if let Some(column) = self.1.checked_add_signed(delta.1) {
-                return Some(Position(line, column));
-            }
-        }
-        None
-    }
-
-    pub fn into_point(&self) -> Point {
-        Point(self.0 as isize, self.1 as isize)
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -38,6 +24,10 @@ impl Point {
     pub const EAST: Point = Point(0, 1);
     pub const SOUTH: Point = Point(1, 0);
     pub const WEST: Point = Point(0, -1);
+    pub const NORTH_EAST: Point = Point(-1, 1);
+    pub const NORTH_WEST: Point = Point(-1, -1);
+    pub const SOUTH_EAST: Point = Point(1, 1);
+    pub const SOUTH_WEST: Point = Point(1, -1);
 
     pub fn rotate_90_clockwise(&self) -> Self {
         Self(self.1, -self.0)
@@ -49,6 +39,20 @@ impl Point {
 
     pub fn rotate_180(&self) -> Self {
         Self(-self.0, -self.1)
+    }
+}
+
+impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.items.iter().enumerate().for_each(|(idx, val)| {
+            val.fmt(f).unwrap();
+            if (idx % self.columns) == (self.columns - 1) {
+                f.write_str("\n").unwrap();
+            } else {
+                f.write_str(" ").unwrap();
+            }
+        });
+        Ok(())
     }
 }
 
@@ -134,8 +138,8 @@ impl Grid<char> {
 }
 
 impl<T> Grid<T> {
-    pub fn valid_position(&self, pos: &Position) -> bool {
-        pos.0 < self.lines && pos.1 < self.columns
+    pub fn valid_position(&self, pos: &Point) -> bool {
+        pos.0 >= 0 && (pos.0 as usize) < self.lines && pos.1 >= 0 && (pos.1 as usize) < self.columns
     }
 
     pub fn valid_coordinates(&self, line: usize, column: usize) -> bool {
@@ -151,12 +155,12 @@ impl<T> Grid<T> {
         self.lines * self.columns
     }
 
-    /// Unchecked conversion from cell index to position.
-    pub fn unchecked_position(&self, index: usize) -> Position {
-        Position(index / self.columns, index % self.columns)
+    /// Unchecked conversion from cell index to point.
+    pub fn unchecked_position(&self, index: usize) -> Point {
+        Point((index / self.columns) as isize, (index % self.columns) as isize)
     }
 
-    pub fn checked_position(&self, index: usize) -> Option<Position> {
+    pub fn checked_position(&self, index: usize) -> Option<Point> {
         if self.valid_index(index) {
             Some(self.unchecked_position(index))
         } else {
@@ -164,7 +168,7 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn strict_position(&self, index: usize) -> Position {
+    pub fn strict_position(&self, index: usize) -> Point {
         if self.valid_index(index) {
             self.unchecked_position(index)
         } else {
@@ -172,11 +176,11 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn unchecked_index(&self, pos: &Position) -> usize {
-        self.columns * pos.0 + pos.1
+    pub fn unchecked_index(&self, pos: &Point) -> usize {
+        self.columns * (pos.0 as usize) + (pos.1 as usize)
     }
 
-    pub fn checked_index(&self, pos: &Position) -> Option<usize> {
+    pub fn checked_index(&self, pos: &Point) -> Option<usize> {
         if self.valid_position(pos) {
             Some(self.unchecked_index(pos))
         } else {
@@ -184,7 +188,7 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn strict_index(&self, pos: &Position) -> usize {
+    pub fn strict_index(&self, pos: &Point) -> usize {
         if self.valid_position(pos) {
             self.unchecked_index(pos)
         } else {
@@ -202,27 +206,27 @@ impl<T> Grid<T> {
         }
     }
 
-    /// Retrieve value at given position.
-    pub fn get(&self, pos: &Position) -> Option<&T> {
+    /// Retrieve value at given point.
+    pub fn get(&self, pos: &Point) -> Option<&T> {
         self.checked_index(pos)
             .map(|index| self.items.get(index).unwrap())
     }
 
-    pub fn strict_get(&self, pos: &Position) -> &T {
+    pub fn strict_get(&self, pos: &Point) -> &T {
         self.items.get(self.strict_index(pos)).unwrap()
     }
 
-    pub fn unchecked_get(&self, pos: &Position) -> &T {
+    pub fn unchecked_get(&self, pos: &Point) -> &T {
         self.items.get(self.unchecked_index(pos)).unwrap()
     }
 
-    pub fn get_mut(&mut self, pos: &Position) -> Option<&mut T> {
+    pub fn get_mut(&mut self, pos: &Point) -> Option<&mut T> {
         self.checked_index(pos)
             .map(|index| self.items.get_mut(index).unwrap())
     }
 
     /// Search for an element, returning its index.
-    pub fn position<P>(&self, predicate: P) -> Option<Position>
+    pub fn position<P>(&self, predicate: P) -> Option<Point>
     where
         P: Fn(&T) -> bool,
     {
@@ -243,7 +247,7 @@ impl<T> Grid<T> {
 
     pub fn for_each_with_position<F>(&self, mut f: F)
     where
-        F: FnMut(Position, &T),
+        F: FnMut(Point, &T),
     {
         self.items
             .iter()
@@ -251,13 +255,24 @@ impl<T> Grid<T> {
             .for_each(|(index, item)| f(self.unchecked_position(index), item));
     }
 
-    pub fn step(&self, origin: &Position, delta: &Point) -> Option<Position> {
-        origin.add(delta).filter(|pos| self.valid_position(pos))
+    pub fn for_each_with_index<F>(&self, mut f: F)
+    where
+        F: FnMut(usize, &T),
+    {
+        self.items
+            .iter()
+            .enumerate()
+            .for_each(|(index, item)| f(index, item));
     }
 
-    pub fn for_each_neighbour<F>(&self, origin: &Position, mut f: F)
+    pub fn step(&self, origin: &Point, delta: &Point) -> Option<Point> {
+        let point = origin.add(*delta);
+        self.valid_position(&point).then_some(point)
+    }
+
+    pub fn for_each_neighbour<F>(&self, origin: &Point, mut f: F)
     where
-        F: FnMut(Position, &T),
+        F: FnMut(Point, &T),
     {
         for delta in &[Point::NORTH, Point::EAST, Point::SOUTH, Point::WEST] {
             if let Some(pos) = self.step(origin, delta) {
@@ -274,13 +289,14 @@ where
     /// Extract N items by applying the given step N-1 times starting from the given origin position.
     ///
     /// Return `None` if any generated coordinates is outside the grid's boundaries.
-    pub fn step_extract<const N: usize>(&self, origin: &Position, step: &Point) -> Option<[T; N]> {
+    pub fn step_extract<const N: usize>(&self, origin: &Point, step: &Point) -> Option<[T; N]> {
         let mut items: [T; N] = std::array::from_fn(|_| T::default());
 
         for i in 0..N {
             let displacement = *step * (i as isize);
-            if let Some(pos) = origin.add(&displacement) {
-                if let Some(item) = self.get(&pos).cloned() {
+            let point = origin.add(displacement);
+            if self.valid_position(&point) {
+                if let Some(item) = self.get(&point).cloned() {
                     items[i] = item;
                 } else {
                     return None;
@@ -297,12 +313,13 @@ where
     /// Return `None` if any generated coordinates is outside the grid's boundaries.
     pub fn deltas_extract<const N: usize>(
         &self,
-        origin: &Position,
+        origin: &Point,
         deltas: [Point; N],
     ) -> Option<[T; N]> {
         let mut items: [T; N] = std::array::from_fn(|_| T::default());
         for (i, d) in deltas.iter().enumerate() {
-            if let Some(pos) = origin.add(d) {
+            let pos = origin.add(*d);
+            if self.valid_position(&pos) {
                 if let Some(item) = self.get(&pos).cloned() {
                     items[i] = item;
                 } else {
@@ -330,7 +347,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Grid, Point, Position};
+    use super::{Grid, Point};
     #[test]
     fn rotate_90_clockwise() {
         assert_eq!(Point::NORTH.rotate_90_clockwise(), Point::EAST);
@@ -374,8 +391,8 @@ mod tests {
     #[test]
     fn checked_position() {
         let g = Grid::new("1234\n5678\n");
-        assert_eq!(Some(Position(0, 0)), g.checked_position(0));
-        assert_eq!(Some(Position(1, 1)), g.checked_position(5));
+        assert_eq!(Some(Point(0, 0)), g.checked_position(0));
+        assert_eq!(Some(Point(1, 1)), g.checked_position(5));
         assert_eq!(None, g.checked_position(g.size()));
         assert_eq!(None, g.checked_position(100));
     }
@@ -383,8 +400,8 @@ mod tests {
     #[test]
     fn strict_position() {
         let g = Grid::new("1234\n5678\n");
-        assert_eq!(Position(0, 0), g.strict_position(0));
-        assert_eq!(Position(1, 1), g.strict_position(5));
+        assert_eq!(Point(0, 0), g.strict_position(0));
+        assert_eq!(Point(1, 1), g.strict_position(5));
     }
 
     #[test]
@@ -398,14 +415,14 @@ mod tests {
     #[should_panic]
     fn strict_index_panics() {
         let g = Grid::new("1234\n5678\n");
-        g.strict_index(&Position(2, 0));
+        g.strict_index(&Point(2, 0));
     }
 
     #[test]
     #[should_panic]
     fn strict_get_panics() {
         let g = Grid::new("1234\n5678\n");
-        g.strict_get(&Position(2, 0));
+        g.strict_get(&Point(2, 0));
     }
 
     #[test]
@@ -419,6 +436,6 @@ mod tests {
     fn position() {
         let g = Grid::new("1234\n5678\n");
         assert_eq!(None, g.position(|v| *v == '0'));
-        assert_eq!(Some(Position(1,3)), g.position(|v| *v == '8'));
+        assert_eq!(Some(Point(1, 3)), g.position(|v| *v == '8'));
     }
 }

@@ -1,8 +1,9 @@
-use crate::etc::grid::{Position, Point};
+use crate::etc::grid::Point;
 use crate::{Grid, Solution, SolutionPair};
 use itertools::Itertools;
+use std::ops::Sub;
 
-type Antennas = std::collections::HashMap<char, std::collections::HashSet<Position>>;
+type Antennas = std::collections::HashMap<char, std::collections::HashSet<Point>>;
 
 fn prepare(input: &str) -> (Grid<char>, Antennas) {
     let grid = Grid::new(input);
@@ -17,13 +18,13 @@ fn prepare(input: &str) -> (Grid<char>, Antennas) {
 
 fn solve_part1(input: &str) -> usize {
     let (grid, antennas) = prepare(input);
-    let mut antinodes: std::collections::HashSet<Position> = Default::default();
+    let mut antinodes: std::collections::HashSet<Point> = Default::default();
     for (_, positions) in &antennas {
         for [a1, a2] in positions.iter().array_combinations() {
-            if let Some(h1) = grid.step(a1, &(a1.into_point() - a2.into_point())) {
+            if let Some(h1) = grid.step(a1, &(a1.sub(*a2))) {
                 antinodes.insert(h1);
             }
-            if let Some(h2) = grid.step(a2, &(a2.into_point() - a1.into_point())) {
+            if let Some(h2) = grid.step(a2, &(a2.sub(*a1))) {
                 antinodes.insert(h2);
             }
         }
@@ -33,10 +34,10 @@ fn solve_part1(input: &str) -> usize {
 
 fn solve_part2(input: &str) -> usize {
     let (grid, antennas) = prepare(input);
-    let mut antinodes: std::collections::HashSet<Position> = Default::default();
+    let mut antinodes: std::collections::HashSet<Point> = Default::default();
     for (_, positions) in &antennas {
         for [a1, a2] in positions.iter().array_combinations() {
-            let d = a1.into_point() - a2.into_point();
+            let d = a1.sub(*a2);
             let gcd = num::integer::gcd(d.0, d.1);
             let d = Point(d.0 / gcd, d.1 / gcd);
             let mut h1 = Some(*a1);

@@ -1,4 +1,4 @@
-use crate::etc::grid::{ALL_DIRECTIONS, Point, Position};
+use crate::etc::grid::{ALL_DIRECTIONS, Point};
 use crate::{Grid, Solution, SolutionPair};
 
 fn prepare(input: &str) -> Grid {
@@ -11,7 +11,7 @@ fn solve_part1(input: &str) -> usize {
     for l in 0..grid.lines {
         for c in 0..grid.columns {
             for step in &ALL_DIRECTIONS {
-                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract(&Position(l, c), step) {
+                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract(&Point(l as isize, c as isize), step) {
                     count += 1;
                 }
             }
@@ -23,10 +23,10 @@ fn solve_part1(input: &str) -> usize {
 fn solve_part2(input: &str) -> usize {
     let grid = prepare(input);
     let mut count = 0;
-    for l in 0..grid.lines {
-        for c in 0..grid.columns {
+    for l in 0..(grid.lines as isize) {
+        for c in 0..(grid.columns as isize) {
             // check the first diagonal in both directions
-            let center = Position(l, c);
+            let center = Point(l, c);
             let diag1 = (Some(['M', 'A', 'S'])
                 == grid.deltas_extract(&center, [(-1, -1), (0, 0), (1, 1)].map(Point::from)))
                 || (Some(['M', 'A', 'S'])
