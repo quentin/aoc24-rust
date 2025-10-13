@@ -26,7 +26,6 @@ impl Position {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Point(pub isize, pub isize);
 
@@ -143,13 +142,54 @@ impl<T> Grid<T> {
         line < self.lines && column < self.columns
     }
 
-    pub fn step(&self, origin: &Position, delta: &Point) -> Option<Position> {
-        origin.add(delta).filter(|pos| self.valid_position(pos))
+    pub fn valid_index(&self, index: usize) -> bool {
+        index < self.items.len()
     }
 
-    fn index_to_position(&self, index: usize) -> Position {
-        assert!(index < self.items.len());
+    /// Return the number of cells.
+    pub fn size(&self) -> usize {
+        self.lines * self.columns
+    }
+
+    /// Unchecked conversion from cell index to position.
+    pub fn unchecked_position(&self, index: usize) -> Position {
         Position(index / self.columns, index % self.columns)
+    }
+
+    pub fn checked_position(&self, index: usize) -> Option<Position> {
+        if self.valid_index(index) {
+            Some(self.unchecked_position(index))
+        } else {
+            None
+        }
+    }
+
+    pub fn strict_position(&self, index: usize) -> Position {
+        if self.valid_index(index) {
+            self.unchecked_position(index)
+        } else {
+            panic!("invalid index")
+        }
+    }
+
+    pub fn unchecked_index(&self, pos: &Position) -> usize {
+        self.columns * pos.0 + pos.1
+    }
+
+    pub fn checked_index(&self, pos: &Position) -> Option<usize> {
+        if self.valid_position(pos) {
+            Some(self.unchecked_index(pos))
+        } else {
+            None
+        }
+    }
+
+    pub fn strict_index(&self, pos: &Position) -> usize {
+        if self.valid_position(pos) {
+            self.unchecked_index(pos)
+        } else {
+            panic!("invalid position")
+        }
     }
 
     /// Retrieve value at given line and column coordinates.
@@ -163,22 +203,22 @@ impl<T> Grid<T> {
     }
 
     /// Retrieve value at given position.
-    pub fn get(&self, position: &Position) -> Option<&T> {
-        if self.valid_position(position) {
-            let index = position.0 * self.columns + position.1;
-            self.items.get(index)
-        } else {
-            None
-        }
+    pub fn get(&self, pos: &Position) -> Option<&T> {
+        self.checked_index(pos)
+            .map(|index| self.items.get(index).unwrap())
     }
 
-    pub fn get_mut(&mut self, position: &Position) -> Option<&mut T> {
-        if self.valid_position(position) {
-            let index = position.0 * self.columns + position.1;
-            self.items.get_mut(index)
-        } else {
-            None
-        }
+    pub fn strict_get(&self, pos: &Position) -> &T {
+        self.items.get(self.strict_index(pos)).unwrap()
+    }
+
+    pub fn unchecked_get(&self, pos: &Position) -> &T {
+        self.items.get(self.unchecked_index(pos)).unwrap()
+    }
+
+    pub fn get_mut(&mut self, pos: &Position) -> Option<&mut T> {
+        self.checked_index(pos)
+            .map(|index| self.items.get_mut(index).unwrap())
     }
 
     /// Search for an element, returning its index.
@@ -190,7 +230,7 @@ impl<T> Grid<T> {
             .iter()
             .enumerate()
             .find(|(_, val)| predicate(val))
-            .map(|(i, _)| self.index_to_position(i))
+            .map(|(i, _)| self.unchecked_position(i))
     }
 
     /// Search for an element
@@ -208,7 +248,22 @@ impl<T> Grid<T> {
         self.items
             .iter()
             .enumerate()
-            .for_each(|(index, item)| f(self.index_to_position(index), item));
+            .for_each(|(index, item)| f(self.unchecked_position(index), item));
+    }
+
+    pub fn step(&self, origin: &Position, delta: &Point) -> Option<Position> {
+        origin.add(delta).filter(|pos| self.valid_position(pos))
+    }
+
+    pub fn for_each_neighbour<F>(&self, origin: &Position, mut f: F)
+    where
+        F: FnMut(Position, &T),
+    {
+        for delta in &[Point::NORTH, Point::EAST, Point::SOUTH, Point::WEST] {
+            if let Some(pos) = self.step(origin, delta){ 
+                f(pos, self.unchecked_get(&pos));
+            }
+        }
     }
 }
 
