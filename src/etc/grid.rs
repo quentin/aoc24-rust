@@ -231,6 +231,10 @@ impl<T> Grid<T> {
             .map(|index| self.items.get_mut(index).unwrap())
     }
 
+    pub fn set_at(&mut self, index: usize, val: T) {
+        self.items[index] = val;
+    }
+
     /// Search for an element, returning its index.
     pub fn position<P>(&self, predicate: P) -> Option<Point>
     where
