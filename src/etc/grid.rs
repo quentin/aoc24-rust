@@ -48,8 +48,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
             val.fmt(f).unwrap();
             if (idx % self.columns) == (self.columns - 1) {
                 f.write_str("\n").unwrap();
-            } else {
-                f.write_str(" ").unwrap();
             }
         });
         Ok(())
