@@ -13,7 +13,7 @@ pub struct Grid<T = char> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Point(pub isize, pub isize);
+pub struct Point(pub i64, pub i64);
 
 impl Point {
     pub fn is_identity(&self) -> bool {
@@ -58,7 +58,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
 
 impl From<(i32, i32)> for Point {
     fn from(value: (i32, i32)) -> Self {
-        Self(value.0 as isize, value.1 as isize)
+        Self(value.0.into(), value.1.into())
     }
 }
 
@@ -80,13 +80,21 @@ impl std::ops::Sub for Point {
 
 impl<T> std::ops::Mul<T> for Point
 where
-    isize: std::ops::Mul<T>,
-    T: std::ops::Mul<isize, Output = isize> + Copy,
+    i64: std::ops::Mul<T>,
+    T: std::ops::Mul<i64, Output = i64> + Copy,
 {
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
         Point(rhs * self.0, rhs * self.1)
+    }
+}
+
+impl std::ops::Rem for Point {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        Point(self.0 % rhs.0, self.1 % rhs.1)
     }
 }
 
@@ -157,7 +165,7 @@ impl<T> Grid<T> {
 
     /// Unchecked conversion from cell index to point.
     pub fn unchecked_position(&self, index: usize) -> Point {
-        Point((index / self.columns) as isize, (index % self.columns) as isize)
+        Point((index / self.columns) as i64, (index % self.columns) as i64)
     }
 
     pub fn checked_position(&self, index: usize) -> Option<Point> {
@@ -293,7 +301,7 @@ where
         let mut items: [T; N] = std::array::from_fn(|_| T::default());
 
         for i in 0..N {
-            let displacement = *step * (i as isize);
+            let displacement = *step * (i as i64);
             let point = origin.add(displacement);
             if self.valid_position(&point) {
                 if let Some(item) = self.get(&point).cloned() {

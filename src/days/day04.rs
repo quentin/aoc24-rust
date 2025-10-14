@@ -8,10 +8,10 @@ fn prepare(input: &str) -> Grid {
 fn solve_part1(input: &str) -> usize {
     let grid = prepare(input);
     let mut count = 0;
-    for l in 0..grid.lines {
-        for c in 0..grid.columns {
+    for l in 0..(grid.lines as i64){
+        for c in 0..(grid.columns as i64) {
             for step in &ALL_DIRECTIONS {
-                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract(&Point(l as isize, c as isize), step) {
+                if let Some(['X', 'M', 'A', 'S']) = grid.step_extract(&Point(l, c), step) {
                     count += 1;
                 }
             }
@@ -23,8 +23,8 @@ fn solve_part1(input: &str) -> usize {
 fn solve_part2(input: &str) -> usize {
     let grid = prepare(input);
     let mut count = 0;
-    for l in 0..(grid.lines as isize) {
-        for c in 0..(grid.columns as isize) {
+    for l in 0..(grid.lines as i64) {
+        for c in 0..(grid.columns as i64) {
             // check the first diagonal in both directions
             let center = Point(l, c);
             let diag1 = (Some(['M', 'A', 'S'])
