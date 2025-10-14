@@ -92,7 +92,7 @@ where
 
 /// all direction vectors `(delta-line, delta-column)`:
 ///
-/// ```
+/// ```test
 ///   o---> column
 ///   |
 ///   |
