@@ -6,6 +6,7 @@ use std::ops::Add;
 ///
 /// The origin `(0,0)` is the top-left-most item.
 /// The bottom-right-most item is at coordinates (height-1, width-1).
+#[derive(Clone)]
 pub struct Grid<T = char> {
     pub lines: usize,
     pub columns: usize,
@@ -144,6 +145,11 @@ impl Grid<char> {
 }
 
 impl<T> Grid<T> {
+
+    pub fn iter(&self) -> std::slice::Iter<'_, T> {
+        self.items.iter()
+    }
+
     pub fn valid_position(&self, pos: &Point) -> bool {
         pos.0 >= 0 && (pos.0 as usize) < self.lines && pos.1 >= 0 && (pos.1 as usize) < self.columns
     }
@@ -352,6 +358,19 @@ where
             columns: self.columns,
             items: self.items.iter().map(f).collect(),
         }
+    }
+}
+
+impl<T> Grid<T>
+where
+    T: Copy,
+{
+    pub fn update(&mut self, pos: &Point, v: T) -> Option<T> {
+        self.get_mut(pos).map(|cell| {
+            let old = *cell;
+            *cell = v;
+            old
+        })
     }
 }
 
