@@ -145,7 +145,6 @@ impl Grid<char> {
 }
 
 impl<T> Grid<T> {
-
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
         self.items.iter()
     }
@@ -302,6 +301,14 @@ impl<T> Grid<T>
 where
     T: Default + Clone,
 {
+    pub fn default(lines: usize, columns: usize) -> Self {
+        Grid {
+            lines: lines,
+            columns: columns,
+            items: vec![T::default(); lines * columns],
+        }
+    }
+
     /// Extract N items by applying the given step N-1 times starting from the given origin position.
     ///
     /// Return `None` if any generated coordinates is outside the grid's boundaries.
@@ -358,6 +365,13 @@ where
             columns: self.columns,
             items: self.items.iter().map(f).collect(),
         }
+    }
+
+    pub fn update_each<F>(&mut self, f: F)
+    where
+        F: Fn(&mut T),
+    {
+        self.items.iter_mut().for_each(f);
     }
 }
 
