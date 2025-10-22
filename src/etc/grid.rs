@@ -41,6 +41,11 @@ impl Point {
     pub fn rotate_180(&self) -> Self {
         Self(-self.0, -self.1)
     }
+
+    /// Return the taxicab distance to the other point.
+    pub fn taxicab_distance(&self, other: &Self) -> u64 {
+        self.0.abs_diff(other.0) + self.1.abs_diff(other.1)
+    }
 }
 
 impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
@@ -97,9 +102,17 @@ impl std::ops::Rem for Point {
     }
 }
 
-/// all direction vectors `(delta-line, delta-column)`:
+/// Taxicab direction vectors:
+pub const TAXICAB_DIRECTIONS: [Point; 4] = [
+    Point(0, 1),
+    Point(1, 0),
+    Point(0, -1),
+    Point(-1, 0),
+];
+
+/// Tchebychev direction vectors `(delta-line, delta-column)`:
 ///
-/// ```test
+/// ```text
 ///   o---> column
 ///   |
 ///   |
