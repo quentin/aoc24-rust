@@ -298,8 +298,8 @@ fn solve_part1(input: &str) -> u64 {
     sum_of_complexities
 }
 
-fn solve_part2(input: &str) -> u64 {
-    1
+fn solve_part2(input: &str) -> () {
+    () // TODO
 }
 
 pub fn solve(input: String) -> SolutionPair {
